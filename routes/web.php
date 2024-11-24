@@ -9,15 +9,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-
+require_once '../controllers/QuizController.php';
 require_once '../controllers/AuthController.php';
 require_once '../models/User.php';
 require_once '../config/database.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $authController = new AuthController($pdo);
+$quizController = new QuizController($pdo);
+$scoreController = new ScoreController($pdo);
 
 $requestData = json_decode(file_get_contents("php://input"), true);
+
+
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($requestData['register'])) {
@@ -33,3 +37,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode(["status" => "error", "message" => "Acción no especificada"]);
     }
 }
+
+
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_GET['action'] == 'save_score') {
+    $data = json_decode(file_get_contents("php://input"), true);
+    $nameId = $data['name_id']; // Obtener de la sesión o el token JWT
+    $score = $data['score'];
+    echo $quizController->saveScore($nameId, $score);
+}
+
+// Obtener ranking diario
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && $_GET['action'] == 'get_ranking') {
+    echo $quizController->getRanking();
+}
+
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $inputData = json_decode(file_get_contents("php://input"), true); // Leer JSON del cuerpo
+    $score = $inputData['score'] ?? null;
+
+    echo $scoreController->saveScore($score);
+}
+
